@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from models import Base
+from dotenv import load_dotenv
+from os import getenv
 
-engine = create_engine('mysql+pymysql://root:4322680Artem@localhost/vremyasilnihbot')
+load_dotenv()
+
+engine = create_engine(getenv("DB_URL"))
 
 Base.metadata.create_all(bind=engine)
 
