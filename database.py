@@ -1,13 +1,17 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-from models import Base
+import os
+
 from dotenv import load_dotenv
-from os import getenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
 
 load_dotenv()
 
-engine = create_engine(getenv("DB_URL"))
+engine = create_engine(url=os.getenv("DB_URL"))
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(engine)
 
-Session = scoped_session(sessionmaker(bind=engine))
+session = sessionmaker(bind=engine)
+
+
+
