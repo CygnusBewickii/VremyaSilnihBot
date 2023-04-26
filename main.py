@@ -1,4 +1,5 @@
 import asyncio
+import locale
 import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
@@ -7,7 +8,9 @@ from dotenv import load_dotenv
 from keyboards.authorization import get_login_kb
 from handlers import authorization, management
 from aiogram.fsm.storage.memory import MemoryStorage
+from locale import setlocale
 
+setlocale(locale.LC_ALL, "ru_RU.UTF-8")
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
