@@ -14,8 +14,4 @@ async def login(message: Message):
     if user == None:
         await message.reply('Вы не являетесь членом клуба')
     else:
-        await message.reply('Вы удачно авторизованы', reply_markup=get_main_management_panel())
-
-
-
-
+        await message.reply(f'Здравствуйте, {user.name}. Вы удачно авторизованы', reply_markup=get_main_management_panel())

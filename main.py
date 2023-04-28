@@ -9,6 +9,7 @@ from keyboards.authorization import get_login_kb
 from handlers import authorization, management
 from aiogram.fsm.storage.memory import MemoryStorage
 from locale import setlocale
+from utils import db_queries
 
 setlocale(locale.LC_ALL, "ru_RU.UTF-8")
 load_dotenv()

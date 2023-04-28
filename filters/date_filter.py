@@ -13,3 +13,4 @@ class DateFilter(BaseFilter):
                 False
         except:
             return False
+
