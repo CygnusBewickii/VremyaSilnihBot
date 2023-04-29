@@ -1,5 +1,6 @@
 from aiogram import Router
 from aiogram.filters.text import Text
+from aiogram.filters.command import Command
 from aiogram.types import Message
 from utils.db_queries import get_user_by_telegram_id
 from keyboards.management import get_main_management_panel

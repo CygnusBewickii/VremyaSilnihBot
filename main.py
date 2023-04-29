@@ -16,7 +16,7 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=getenv("BOT_TOKEN"))
+bot = Bot(token=getenv("BOT_TOKEN"), parse_mode='HTML')
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
