@@ -19,16 +19,19 @@ def get_select_month_kb() -> ReplyKeyboardMarkup:
     kb.button(text=f"Следующий месяц ({(datetime.date.today() + datetime.timedelta(days=31)).strftime('%B')})")
     return kb.as_markup(resize_keyboard=True)
 
-def get_select_time_kb(free_time: [Appointment]) -> ReplyKeyboardMarkup:
+def get_select_time_kb(appointments: [Appointment]) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    for appointment in free_time:
+    for appointment in appointments:
         time: datetime.datetime
-        kb.button(text=appointment.date.strftime("%H:%M"))
+        kb.button(text=appointment.date.strftime("%H:%M") + f'({"свободно" if appointment.client_id == None else "Занято"})')
+    kb.adjust(4, 4, 4, 4)
     return kb.as_markup(resize_keyboard=True)
 
-def get_clients_kb() -> ReplyKeyboardMarkup:
+def get_clients_kb(is_appointment_empty: bool) -> ReplyKeyboardMarkup:
     clients = get_clients()
     kb = ReplyKeyboardBuilder()
+    if not is_appointment_empty:
+        kb.button(text="Убрать клиента")
     for client in clients:
         kb.button(text=client.name)
     return kb.as_markup(resize_keyboard=True)

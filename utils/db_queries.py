@@ -19,7 +19,8 @@ def get_date_appointments(year: int, month: int, day: int) -> list[Appointment]:
     start_of_day = datetime.datetime(year, month, day)
     end_of_day = start_of_day + datetime.timedelta(hours=23)
     with session() as db:
-        appointments = db.query(Appointment).filter(start_of_day < Appointment.date).filter(Appointment.date < end_of_day)
+        appointments = db.query(Appointment).filter(start_of_day < Appointment.date).filter(Appointment.date < end_of_day).all()
+        return appointments
 
 def get_clients() -> list[Client]:
     with session() as db:
@@ -74,3 +75,24 @@ def create_empty_appointments(year: int, month: int):
                     )
                     db.add(new_appointment)
                     db.commit()
+
+def set_empty_appointment(date: datetime.datetime):
+    with session() as db:
+        appointment = db.query(Appointment).filter(Appointment.date == date).one()
+        appointment.client_id = None
+        appointment.trainer_id = None
+        db.commit()
+
+def is_appointment_empty(date: datetime.datetime) ->  bool:
+    with session() as db:
+        appointment = db.query(Appointment).where(Appointment.date == date).one()
+        return True if appointment.client_id == None else False
+
+def create_new_client(name: str, phone: str):
+    with session() as db:
+        new_client = Client(
+            name=name,
+            phone_number=phone
+        )
+        db.add(new_client)
+        db.commit()

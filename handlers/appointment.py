@@ -4,21 +4,18 @@ from aiogram import Router
 from aiogram.types import Message, ReplyKeyboardRemove
 from filters.date_filter import DateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.command import Command
+from aiogram.filters.text import Text
 from states.appointment import AppointmentState
-from utils.db_queries import get_date_free_time, create_new_appointment, get_trainer_by_name, get_client_by_name, create_empty_appointments
-from keyboards.management import get_select_free_time_kb, get_clients_kb, get_main_management_panel, get_trainers_kb
+from utils.db_queries import *
+from keyboards.management import get_clients_kb, get_main_management_panel, get_trainers_kb, get_select_time_kb, get_select_month_kb
 from filters.user_filter import TrainerExistsFilter, ClientExistsFilter
 from re import match
 
 router = Router()
 
-
-@router.message(Command("menu"))
-async def return_to_panel(message: Message, state: FSMContext):
-    await message.answer(text='Возвращение в меню', reply_markup=get_main_management_panel())
-    await state.clear()
-
+@router.message(Text(text="Изменение записей", ignore_case=True))
+async def make_appointment(message: Message):
+    await message.reply('Выберите месяц', reply_markup=get_select_month_kb())
 
 @router.message(lambda m: ('Этот месяц' in m.text) or ('Следующий месяц' in m.text))
 async def select_date(message: Message, state: FSMContext):
@@ -45,8 +42,8 @@ async def select_time(message: Message, state: FSMContext):
     month = user_data["month"]
     day = int(message.text)
     await state.update_data(day=day)
-    free_time = get_date_free_time(year, month, day)
-    await message.reply("Выберите свободное время, на которое хотите записать клиента", reply_markup=get_select_free_time_kb(free_time))
+    appointments = get_date_appointments(year, month, day)
+    await message.reply("Выберите свободное время, на которое хотите записать клиента", reply_markup=get_select_time_kb(appointments))
     await state.set_state(AppointmentState.choosing_appointment_time)
 
 
@@ -58,7 +55,9 @@ async def show_wrong_month_message(message: Message):
 @router.message(AppointmentState.choosing_appointment_time, lambda m: match(r"[0-9][0-9]:00", m.text))
 async def choose_client(message: Message, state: FSMContext):
     await state.update_data(hour=int(message.text[:2]))
-    await message.reply("Выберите клиента на время", reply_markup=get_clients_kb())
+    user_data = await state.get_data()
+    date = datetime.datetime(user_data["year"], user_data["month"], user_data["day"], user_data["hour"])
+    await message.reply("Выберите клиента на время", reply_markup=get_clients_kb(is_appointment_empty(date)))
     await state.set_state(AppointmentState.choosing_client_name)
 
 
@@ -72,6 +71,14 @@ async def choose_trainer(message: Message, state: FSMContext):
     await state.update_data(client_name=message.text)
     await message.reply("Выберите тренера", reply_markup=get_trainers_kb())
     await state.set_state(AppointmentState.choosing_trainer_name)
+
+@router.message(AppointmentState.choosing_client_name, Text(text="Убрать клиента"))
+async def remove_client(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+    date = datetime.datetime(user_data["year"], user_data["month"], user_data["day"], user_data["hour"])
+    set_empty_appointment(date)
+    await message.reply("Клиент убран с записи", reply_markup=get_main_management_panel())
+    await state.clear()
 
 
 @router.message(AppointmentState.choosing_client_name)
