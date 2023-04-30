@@ -4,6 +4,12 @@ from models import User, Appointment, Client
 from database import session
 from calendar import monthrange
 
+def set_chat_id(user_telegram_id: int, user_chat_id: int):
+    with session() as db:
+        user = db.query(User).where(User.telegram_id == user_telegram_id).one()
+        user.chat_id = user_chat_id
+        db.commit()
+
 def get_user_by_telegram_id(user_id: int) -> User or None:
     with session() as db:
         return db.query(User).where(User.telegram_id == user_id).one_or_none()

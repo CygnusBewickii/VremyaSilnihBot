@@ -9,7 +9,7 @@ from aiogram.types import Message
 from handlers import appointment as appointment_handler
 from handlers import clients
 from keyboards.management import get_main_management_panel
-from utils.db_queries import get_week_appointments, get_client_by_id, get_trainer_by_id
+from utils.db_queries import get_week_appointments, get_client_by_id, get_trainer_by_id, set_chat_id
 
 router = Router()
 router.message.middleware(isRegisteredMiddleware())
@@ -18,6 +18,7 @@ router.include_routers(appointment_handler.router, clients.router)
 
 @router.message(Command("menu"))
 async def return_to_panel(message: Message, state: FSMContext):
+    set_chat_id(message.from_user.id, message.chat.id)
     await message.answer(text='Возвращение в меню', reply_markup=get_main_management_panel())
     await state.clear()
 

@@ -9,6 +9,7 @@ from states.appointment import AppointmentState
 from utils.db_queries import *
 from keyboards.management import get_clients_kb, get_main_management_panel, get_trainers_kb, get_select_time_kb, get_select_month_kb
 from filters.user_filter import TrainerExistsFilter, ClientExistsFilter
+from main import bot
 from re import match
 
 router = Router()
@@ -24,14 +25,14 @@ async def select_date(message: Message, state: FSMContext):
         await state.update_data(year=current_date.year)
         await state.update_data(month=current_date.month)
         create_empty_appointments(current_date.year, current_date.month)
-        await message.reply(f"Напишите дату, на которую хотите записать в месяце {current_date.strftime('%B')}", reply_markup=ReplyKeyboardRemove())
+        await message.reply(f"Напишите дату, на которую хотите изменить запись в месяце {current_date.strftime('%B')}", reply_markup=ReplyKeyboardRemove())
         await state.set_state(AppointmentState.choosing_appointment_date)
     if 'Следующий месяц' in message.text:
         next_month = current_date + datetime.timedelta(days=31)
         await state.update_data(year=next_month.year)
         await state.update_data(month=next_month.month)
         create_empty_appointments(next_month.year, next_month.month)
-        await message.reply(f"Напишите дату, на которую хотите записать в месяце {next_month.strftime('%B')}", reply_markup=ReplyKeyboardRemove())
+        await message.reply(f"Напишите дату, на которую хотите изменить запись в месяце {next_month.strftime('%B')}", reply_markup=ReplyKeyboardRemove())
         await state.set_state(AppointmentState.choosing_appointment_date)
 
 
@@ -43,7 +44,7 @@ async def select_time(message: Message, state: FSMContext):
     day = int(message.text)
     await state.update_data(day=day)
     appointments = get_date_appointments(year, month, day)
-    await message.reply("Выберите свободное время, на которое хотите записать клиента", reply_markup=get_select_time_kb(appointments))
+    await message.reply("Выберите время, на которое хотите изменить запись клиента", reply_markup=get_select_time_kb(appointments))
     await state.set_state(AppointmentState.choosing_appointment_time)
 
 
@@ -98,6 +99,8 @@ async def create_appointment(message: Message, state: FSMContext):
     hour = user_data["hour"]
     date = datetime.datetime(year, month, day, hour)
     create_new_appointment(date, client.id, trainer.id)
+    if trainer.chat_id != message.chat.id:
+        await bot.send_message(trainer.chat_id, f"<b>Новая тренировка</b> \nКлиент: {client.name}\nВремя: {date.strftime('%d-%m-%y %H:%M')}")
     await message.reply(f"Клиент {client.name} записан к тренеру {trainer.name} на {date.strftime('%d-%m-%y %H:%M')}", reply_markup=get_main_management_panel())
     await state.clear()
 

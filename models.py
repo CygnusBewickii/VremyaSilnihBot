@@ -12,6 +12,7 @@ class User(Base):
     name = Column(String(64))
     role = Column(String(32))
     username = Column(String(64), unique=True)
+    chat_id = Column(Integer)
     trainings = relationship("Appointment", back_populates="trainer")
 
 class Appointment(Base):

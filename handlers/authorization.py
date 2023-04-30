@@ -1,8 +1,7 @@
 from aiogram import Router
 from aiogram.filters.text import Text
-from aiogram.filters.command import Command
 from aiogram.types import Message
-from utils.db_queries import get_user_by_telegram_id
+from utils.db_queries import get_user_by_telegram_id, set_chat_id
 from keyboards.management import get_main_management_panel
 
 
@@ -15,4 +14,5 @@ async def login(message: Message):
     if user == None:
         await message.reply('Вы не являетесь членом клуба')
     else:
+        set_chat_id(user_id, message.chat.id)
         await message.reply(f'Здравствуйте, {user.name}. Вы удачно авторизованы', reply_markup=get_main_management_panel())

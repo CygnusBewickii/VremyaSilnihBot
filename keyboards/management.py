@@ -28,6 +28,7 @@ def get_select_time_kb(appointments: [Appointment]) -> ReplyKeyboardMarkup:
     return kb.as_markup(resize_keyboard=True)
 
 def get_clients_kb(is_appointment_empty: bool) -> ReplyKeyboardMarkup:
+    print("Есть")
     clients = get_clients()
     kb = ReplyKeyboardBuilder()
     if not is_appointment_empty:
