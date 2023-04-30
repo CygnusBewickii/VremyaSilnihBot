@@ -35,6 +35,7 @@ def get_clients_kb(is_appointment_empty: bool) -> ReplyKeyboardMarkup:
         kb.button(text="Убрать клиента")
     for client in clients:
         kb.button(text=client.name)
+    print(kb.as_markup())
     return kb.as_markup(resize_keyboard=True)
 
 def get_trainers_kb() -> ReplyKeyboardMarkup:

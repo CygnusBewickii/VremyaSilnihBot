@@ -24,11 +24,3 @@ class Appointment(Base):
     trainer = relationship("User", back_populates="trainings")
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=True)
     client = relationship("Client", back_populates="appointments")
-
-class Client(Base):
-    __tablename__ = "clients"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(128), index=True)
-    phone_number = Column(String(32))
-    appointments = relationship("Appointment", back_populates="client")
