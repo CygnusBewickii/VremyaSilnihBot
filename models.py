@@ -22,5 +22,4 @@ class Appointment(Base):
     date = Column(DateTime, index=True, unique=True)
     trainer_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     trainer = relationship("User", back_populates="trainings")
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=True)
-    client = relationship("Client", back_populates="appointments")
+    client_name = Column(String(64))

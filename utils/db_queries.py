@@ -1,6 +1,6 @@
 import datetime
 
-from models import User, Appointment, Client
+from models import User, Appointment
 from database import session
 from calendar import monthrange
 
@@ -28,32 +28,36 @@ def get_date_appointments(year: int, month: int, day: int) -> list[Appointment]:
         appointments = db.query(Appointment).filter(start_of_day < Appointment.date).filter(Appointment.date < end_of_day).all()
         return appointments
 
-def get_clients() -> list[Client]:
-    with session() as db:
-        return db.query(Client).all()
-
-def get_client_by_id(id: int) -> Client:
-    with session() as db:
-        return db.get(Client, id)
 
 def get_trainer_by_id(id: int) -> User:
     with session() as db:
         return db.get(User, id)
 
-def get_client_by_name(name: str) -> Client:
-    with session() as db:
-        return db.query(Client).where(Client.name == name).one_or_none()
 
 def get_trainer_by_name(name: str) -> User:
     with session() as db:
         return db.query(User).where(User.name == name).one_or_none()
 
-def create_new_appointment(date: datetime.datetime, client_id: int, trainer_id: int):
+def create_new_appointment(date: datetime.datetime, client_name: str, trainer_id: int):
     with session() as db:
-        new_appointment = db.query(Appointment).where(Appointment.date == date).one()
-        new_appointment.client_id = client_id
-        new_appointment.trainer_id = trainer_id
-        db.commit()
+        new_appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
+        if new_appointment == None:
+            print("Внутри")
+            previous_appointment = db.query(Appointment).where(Appointment.date == date - datetime.timedelta(minutes=date.minute)).one()
+            db.delete(previous_appointment)
+            next_appointment = db.query(Appointment).where(Appointment.date == date + datetime.timedelta(minutes=60-date.minute)).one()
+            db.delete(next_appointment)
+            new_appointment = Appointment(
+                date=date,
+                trainer_id=trainer_id,
+                client_name=client_name
+            )
+            db.add(new_appointment)
+            db.commit()
+        else:
+            new_appointment.client_name = client_name
+            new_appointment.trainer_id = trainer_id
+            db.commit()
 
 def get_trainers() -> list[User]:
     with session() as db:
@@ -76,7 +80,7 @@ def create_empty_appointments(year: int, month: int):
                 for hour in range(6, 22):
                     new_appointment = Appointment(
                         date=datetime.datetime(year, month, day, hour),
-                        client_id=None,
+                        client_name=None,
                         trainer_id=None,
                     )
                     db.add(new_appointment)
@@ -94,11 +98,3 @@ def is_appointment_empty(date: datetime.datetime) ->  bool:
         appointment = db.query(Appointment).where(Appointment.date == date).one()
         return True if appointment.client_id == None else False
 
-def create_new_client(name: str, phone: str):
-    with session() as db:
-        new_client = Client(
-            name=name,
-            phone_number=phone
-        )
-        db.add(new_client)
-        db.commit()

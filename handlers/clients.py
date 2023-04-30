@@ -3,7 +3,6 @@ from aiogram.filters.text import Text
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from states.client import ClientState
-from utils.db_queries import create_new_client
 from keyboards.management import get_main_management_panel
 
 router = Router()

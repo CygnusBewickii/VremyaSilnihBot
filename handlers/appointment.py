@@ -7,8 +7,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters.text import Text
 from states.appointment import AppointmentState
 from utils.db_queries import *
-from keyboards.management import get_clients_kb, get_main_management_panel, get_trainers_kb, get_select_time_kb, get_select_month_kb
-from filters.user_filter import TrainerExistsFilter, ClientExistsFilter
+from keyboards.management import get_main_management_panel, get_trainers_kb, get_select_month_kb
+from filters.user_filter import TrainerExistsFilter
 from main import bot
 from re import match
 
@@ -44,7 +44,7 @@ async def select_time(message: Message, state: FSMContext):
     day = int(message.text)
     await state.update_data(day=day)
     appointments = get_date_appointments(year, month, day)
-    await message.reply("Выберите время, на которое хотите изменить запись клиента", reply_markup=get_select_time_kb(appointments))
+    await message.reply("Введите время, на которое хотите изменить запись клиента")
     await state.set_state(AppointmentState.choosing_appointment_time)
 
 
@@ -53,12 +53,11 @@ async def show_wrong_month_message(message: Message):
     await message.reply("Данные введены некорректо. Введите дату (число от 1 до 31)")
 
 
-@router.message(AppointmentState.choosing_appointment_time, lambda m: match(r"[0-9][0-9]:00", m.text))
+@router.message(AppointmentState.choosing_appointment_time, lambda m: match(r"[0-9][0-9]:[0-9][0-9]", m.text))
 async def choose_client(message: Message, state: FSMContext):
     await state.update_data(hour=int(message.text[:2]))
-    user_data = await state.get_data()
-    date = datetime.datetime(user_data["year"], user_data["month"], user_data["day"], user_data["hour"])
-    await message.reply("Выберите клиента на время", reply_markup=get_clients_kb(is_appointment_empty(date)))
+    await state.update_data(minutes=int(message.text[3:]))
+    await message.reply("Выберите клиента на время")
     await state.set_state(AppointmentState.choosing_client_name)
 
 
@@ -67,7 +66,7 @@ async def show_wrong_client_message(message: Message):
     await message.reply("Данные введены неправильно. Воспользуйтесь кнопками")
 
 
-@router.message(AppointmentState.choosing_client_name, ClientExistsFilter())
+@router.message(AppointmentState.choosing_client_name)
 async def choose_trainer(message: Message, state: FSMContext):
     await state.update_data(client_name=message.text)
     await message.reply("Выберите тренера", reply_markup=get_trainers_kb())
@@ -92,16 +91,16 @@ async def create_appointment(message: Message, state: FSMContext):
     trainer = get_trainer_by_name(message.text)
     user_data = await state.get_data()
     client_name = user_data["client_name"]
-    client = get_client_by_name(client_name)
     year = user_data["year"]
     month = user_data["month"]
     day = user_data["day"]
     hour = user_data["hour"]
-    date = datetime.datetime(year, month, day, hour)
-    create_new_appointment(date, client.id, trainer.id)
+    minutes = user_data["minutes"]
+    date = datetime.datetime(year, month, day, hour, minutes)
+    create_new_appointment(date, client_name, trainer.id)
     if trainer.chat_id != message.chat.id:
-        await bot.send_message(trainer.chat_id, f"<b>Новая тренировка</b> \nКлиент: {client.name}\nВремя: {date.strftime('%d-%m-%y %H:%M')}")
-    await message.reply(f"Клиент {client.name} записан к тренеру {trainer.name} на {date.strftime('%d-%m-%y %H:%M')}", reply_markup=get_main_management_panel())
+        await bot.send_message(trainer.chat_id, f"<b>Новая тренировка</b> \nКлиент: {client_name}\nВремя: {date.strftime('%d-%m-%y %H:%M')}")
+    await message.reply(f"Клиент {client_name} записан к тренеру {trainer.name} на {date.strftime('%d-%m-%y %H:%M')}", reply_markup=get_main_management_panel())
     await state.clear()
 
 
