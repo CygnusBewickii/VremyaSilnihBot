@@ -42,7 +42,6 @@ def create_new_appointment(date: datetime.datetime, client_name: str, trainer_id
     with session() as db:
         new_appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
         if new_appointment == None:
-            print("Внутри")
             previous_appointment = db.query(Appointment).where(Appointment.date == date - datetime.timedelta(minutes=date.minute)).one()
             db.delete(previous_appointment)
             next_appointment = db.query(Appointment).where(Appointment.date == date + datetime.timedelta(minutes=60-date.minute)).one()
@@ -89,12 +88,24 @@ def create_empty_appointments(year: int, month: int):
 def set_empty_appointment(date: datetime.datetime):
     with session() as db:
         appointment = db.query(Appointment).filter(Appointment.date == date).one()
-        appointment.client_id = None
+        appointment.client_name = None
         appointment.trainer_id = None
+        if date.minute != 0:
+            db.add(Appointment(
+                date=date+datetime.timedelta(minutes=60-date.minute),
+                trainer_id=None,
+                client_name=None
+            ))
+            db.add(Appointment(
+                date=date-datetime.timedelta(minutes=date.minute),
+                trainer_id=None,
+                client_name=None
+            ))
+            db.delete(appointment)
         db.commit()
 
 def is_appointment_empty(date: datetime.datetime) ->  bool:
     with session() as db:
-        appointment = db.query(Appointment).where(Appointment.date == date).one()
-        return True if appointment.client_id == None else False
+        appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
+        return True if appointment == None or appointment.client_name == None else False
 

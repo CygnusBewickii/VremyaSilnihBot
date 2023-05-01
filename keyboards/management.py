@@ -18,6 +18,10 @@ def get_select_month_kb() -> ReplyKeyboardMarkup:
     kb.button(text=f"Следующий месяц ({(datetime.date.today() + datetime.timedelta(days=31)).strftime('%B')})")
     return kb.as_markup(resize_keyboard=True)
 
+def get_cancel_training_kb() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="Убрать клиента")
+    return kb.as_markup(resize_keyboard=True)
 
 def get_trainers_kb() -> ReplyKeyboardMarkup:
     trainers = get_trainers()
