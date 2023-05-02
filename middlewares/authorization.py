@@ -2,7 +2,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 from keyboards.authorization import get_login_kb
-from utils.db_queries import get_user_by_telegram_id
+from utils.db_queries import get_trainer_by_username
 class isRegisteredMiddleware(BaseMiddleware):
     async def __call__(
             self,
@@ -10,7 +10,7 @@ class isRegisteredMiddleware(BaseMiddleware):
             event: Message,
             data: Dict[str, Any]
     ) -> Any:
-        user = get_user_by_telegram_id(event.from_user.id)
+        user = get_trainer_by_username(event.from_user.username)
         if user != None:
             return await handler(event, data)
         else:
