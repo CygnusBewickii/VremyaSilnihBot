@@ -30,4 +30,8 @@ def get_trainers_kb() -> ReplyKeyboardMarkup:
         kb.button(text=trainer.name)
     return kb.as_markup(resize_keyboard=True)
 
-
+def det_roles_kb() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="Администратор")
+    kb.button(text="Тренер")
+    return kb.as_markup(resize_keyboard=True)

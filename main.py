@@ -23,14 +23,13 @@ dp = Dispatcher(storage=storage)
 # Хэндлер на команду /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    print(message.from_user.username)
     await message.answer("Привет, я телеграм бот зала тайского бокса \"Время сильных\"",
                          reply_markup=get_login_kb())
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
     dp.include_routers(authorization.router, management.router)
-
-    # dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
 
     await dp.start_polling(bot)
 
