@@ -2,13 +2,15 @@ import datetime
 
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup
-from utils.db_queries import get_trainers
+from utils.db_queries import get_trainers, is_user_admin
 
-def get_main_management_panel() -> ReplyKeyboardMarkup:
+def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
+    is_admin = is_user_admin(username)
     kb = ReplyKeyboardBuilder()
     kb.button(text="Изменение записей")
     kb.button(text="Расписание на неделю")
-    kb.button(text="Добавить нового тренера")
+    if is_admin:
+        kb.button(text="Добавить нового тренера")
     kb.adjust(1, 2)
     return kb.as_markup(resize_keyboard=True)
 

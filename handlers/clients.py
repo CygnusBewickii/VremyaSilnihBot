@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from states.client import ClientState
 from keyboards.management import get_main_management_panel
 
+
 router = Router()
 
 @router.message(Text(text="Добавить клиента"))
@@ -25,5 +26,5 @@ async def add_client(message: Message, state: FSMContext):
     client_name = user_data["client_name"]
     client_phone = user_data["client_phone"]
     create_new_client(client_name, client_phone)
-    await message.reply(f"Добавлен пользователь {client_name}  (телефон {client_phone})", reply_markup=get_main_management_panel())
+    await message.reply(f"Добавлен пользователь {client_name}  (телефон {client_phone})", reply_markup=get_main_management_panel(message.from_user.username))
     await state.clear()

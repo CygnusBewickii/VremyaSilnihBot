@@ -1,7 +1,7 @@
 import datetime
 
 from aiogram import Router
-from middlewares.authorization import isRegisteredMiddleware
+from middlewares.authorization import IsRegisteredMiddleware
 from aiogram.filters.text import Text
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -12,14 +12,14 @@ from keyboards.management import get_main_management_panel
 from utils.db_queries import get_week_appointments, get_trainer_by_id, set_chat_id
 
 router = Router()
-router.message.middleware(isRegisteredMiddleware())
+router.message.middleware(IsRegisteredMiddleware())
 router.include_routers(appointment_handler.router, clients.router, trainers.router)
 
 
 @router.message(Command("menu"))
 async def return_to_panel(message: Message, state: FSMContext):
     set_chat_id(message.from_user.id, message.chat.id)
-    await message.answer(text='Возвращение в меню', reply_markup=get_main_management_panel())
+    await message.answer(text='Возвращение в меню', reply_markup=get_main_management_panel(message.from_user.username))
     await state.clear()
 
 @router.message(Text(text="Расписание на неделю"))

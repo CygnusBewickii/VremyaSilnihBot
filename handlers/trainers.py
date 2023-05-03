@@ -6,8 +6,10 @@ from states.trainer import TrainerState
 from keyboards.management import get_roles_kb, get_main_management_panel
 from utils.db_queries import create_trainer
 from filters.role_filter import RoleExistsFilter
+from middlewares.authorization import IsAdminMiddleware
 
 router = Router()
+router.message.middleware(IsAdminMiddleware())
 
 @router.message(Text(text="Добавить нового тренера"))
 async def choose_trainer_name(message: Message, state: FSMContext):
@@ -34,7 +36,7 @@ async def add_trainer(message: Message, state: FSMContext):
         await state.update_data(trainer_role="trainer")
     user_data = await state.get_data()
     create_trainer(user_data["trainer_name"], user_data["trainer_username"], user_data["trainer_role"])
-    await message.reply("Новый тренер добавлен в систему", reply_markup=get_main_management_panel())
+    await message.reply("Новый тренер добавлен в систему", reply_markup=get_main_management_panel(message.from_user.username))
     await state.clear()
 
 @router.message(TrainerState.choosing_trainer_role)

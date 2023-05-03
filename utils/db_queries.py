@@ -110,9 +110,14 @@ def set_empty_appointment(date: datetime.datetime):
 
 def is_appointment_empty(date: datetime.datetime) ->  bool:
     with session() as db:
-        appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
+        appointment = get_appointment_by_datetime(date)
         return True if appointment == None or appointment.client_name == None else False
 
+
+def get_appointment_by_datetime(date: datetime.datetime) -> Appointment:
+    with session() as db:
+        appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
+        return appointment
 
 def create_trainer(name: str, username: str, role: str):
     with session() as db:
@@ -123,3 +128,7 @@ def create_trainer(name: str, username: str, role: str):
         )
         db.add(new_trainer)
         db.commit()
+
+def is_user_admin(username: str) -> bool:
+    trainer = get_trainer_by_username(username)
+    return trainer.role == "admin"
