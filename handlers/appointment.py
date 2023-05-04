@@ -63,7 +63,7 @@ async def admin_choose_client(message: Message, state: FSMContext):
         else:
             await message.reply(f"На данное время есть запись у {trainer.name}. Если хотите записать другого клиента, то введите его имя. Если хотите убрать запись, то воспользуйтесь соответствующей кнопкой", reply_markup=get_cancel_training_kb())
     else:
-        await message.reply("Выберите клиента на время")
+        await message.reply("Введите имя клиента")
     await state.set_state(AppointmentState.choosing_client_name)
 
 @router.message(AppointmentState.choosing_appointment_time, TimeFilter())
@@ -81,7 +81,7 @@ async def trainer_choose_client(message: Message, state: FSMContext):
         else:
             await message.reply(f"<b>На данное время есть запись у {trainer.name}. Изменить запись может только этот тренер или администратор. Выберите другое время</b>")
     else:
-        await message.reply("Выберите клиента на время")
+        await message.reply("Введите имя клиента")
         await state.set_state(AppointmentState.choosing_client_name)
 
 @router.message(AppointmentState.choosing_appointment_time)
@@ -103,11 +103,6 @@ async def choose_trainer(message: Message, state: FSMContext):
     await state.update_data(client_name=message.text)
     await message.reply("Выберите тренера", reply_markup=get_trainers_kb())
     await state.set_state(AppointmentState.choosing_trainer_name)
-
-
-@router.message(AppointmentState.choosing_client_name)
-async def show_wrong_trainer(message: Message):
-    await message.reply("Такого клиента пока не существует. Сначала создайте его в разделе \"Добавить клиента\" или выберите из имеющихся")
 
 
 @router.message(AppointmentState.choosing_trainer_name, TrainerExistsFilter())

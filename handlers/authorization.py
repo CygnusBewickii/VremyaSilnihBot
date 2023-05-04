@@ -14,5 +14,5 @@ async def login(message: Message):
     if user == None:
         await message.reply('Вы не являетесь членом клуба')
     else:
-        set_chat_id(user_id, message.chat.id)
+        set_chat_id(message.from_user.username, message.chat.id)
         await message.reply(f'Здравствуйте, {user.name}. Вы удачно авторизованы', reply_markup=get_main_management_panel(message.from_user.username))

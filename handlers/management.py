@@ -18,7 +18,7 @@ router.include_routers(appointment_handler.router, clients.router, trainers.rout
 
 @router.message(Command("menu"))
 async def return_to_panel(message: Message, state: FSMContext):
-    set_chat_id(message.from_user.id, message.chat.id)
+    set_chat_id(message.from_user.username, message.chat.id)
     await message.answer(text='Возвращение в меню', reply_markup=get_main_management_panel(message.from_user.username))
     await state.clear()
 

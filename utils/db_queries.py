@@ -4,9 +4,9 @@ from models import User, Appointment
 from database import session
 from calendar import monthrange
 
-def set_chat_id(user_telegram_id: int, user_chat_id: int):
+def set_chat_id(username, user_chat_id: int):
     with session() as db:
-        user = db.query(User).where(User.telegram_id == user_telegram_id).one()
+        user = db.query(User).where(User.username == username).one()
         user.chat_id = user_chat_id
         db.commit()
 
