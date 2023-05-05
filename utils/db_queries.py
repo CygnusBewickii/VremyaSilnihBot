@@ -132,3 +132,16 @@ def create_trainer(name: str, username: str, role: str):
 def is_user_admin(username: str) -> bool:
     trainer = get_trainer_by_username(username)
     return trainer.role == "admin"
+
+
+def fill_days_with_regular_clients(day_of_the_week: int, trainer_name: str, date: datetime.datetime, client_name: str):
+    with session() as db:
+        appointments = db.query(Appointment).where(Appointment.date.weekday() == day_of_the_week)\
+            .filter(Appointment.date > datetime.datetime.now())\
+            .filter(Appointment.client_name != None).all()
+        trainer_id = get_trainer_by_name(trainer_name)
+
+        for appointment in appointments:
+            appointment.client_name = client_name
+            appointment.trainer_id = trainer_id
+
