@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date, ARRAY
 from sqlalchemy.orm import relationship
 
 class Base(DeclarativeBase): pass
@@ -23,3 +23,11 @@ class Appointment(Base):
     trainer_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     trainer = relationship("User", back_populates="trainings")
     client_name = Column(String(64))
+
+class RegularClient(Base):
+
+    __tablename__ = "regular_clients"
+
+    id = Column(Integer, primary_key=True)
+    appointment_dates = Column(ARRAY(DateTime))
+    name = Column(String(64), index=True)

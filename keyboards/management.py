@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from aiogram.types import ReplyKeyboardMarkup
 from utils.db_queries import get_trainers, is_user_admin
-from callbackFactories.regualar_clients import DaysCallbackFactory
+#from callbackFactories.regualar_clients import DaysCallbackFactory
 
 def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     is_admin = is_user_admin(username)

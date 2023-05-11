@@ -3,6 +3,7 @@ import datetime
 from models import User, Appointment
 from database import session
 from calendar import monthrange
+from sqlalchemy import func
 
 def set_chat_id(username, user_chat_id: int):
     with session() as db:
@@ -72,7 +73,8 @@ def get_week_appointments() -> list[Appointment]:
     create_empty_appointments(today.year, today.month)
     create_empty_appointments(week_later.year, week_later.month)
     with session() as db:
-        trainings = db.query(Appointment).filter(Appointment.date >= today).filter(Appointment.date < week_later).all()
+        trainings = db.query(Appointment).filter(Appointment.date >= today).filter(Appointment.date < week_later).\
+            order_by(Appointment.date).all()
         return trainings
 
 def create_empty_appointments(year: int, month: int):
@@ -134,14 +136,35 @@ def is_user_admin(username: str) -> bool:
     return trainer.role == "admin"
 
 
-def fill_days_with_regular_clients(day_of_the_week: int, trainer_name: str, date: datetime.datetime, client_name: str):
+def fill_days_with_regular_clients(day_of_the_week: int, trainer_name: str, time: datetime.time, client_name: str):
     with session() as db:
-        appointments = db.query(Appointment).where(Appointment.date.weekday() == day_of_the_week)\
+        appointments = db.query(Appointment).where(func.extract("DOW", Appointment.date) == day_of_the_week)\
             .filter(Appointment.date > datetime.datetime.now())\
-            .filter(Appointment.client_name != None).all()
-        trainer_id = get_trainer_by_name(trainer_name)
+            .filter(Appointment.client_name is not None)\
+            .filter(func.extract("MINUTE", Appointment.date) == time.minute)\
+            .filter(func.extract("HOUR", Appointment.date) == time.hour)\
+            .all()
+        trainer_id = get_trainer_by_name(trainer_name).id
+        if len(appointments) != 0:
+            for appointment in appointments:
+                appointment: Appointment
+                appointment.client_name = client_name
+                appointment.trainer_id = trainer_id
+                db.commit()
+        else:
+            correct_datetimes = db.query(Appointment).where(func.extract("DOW", Appointment.date) == day_of_the_week).all()
+            print(correct_datetimes)
+            dates_set = set()
+            for correct_datetime in correct_datetimes:
+                dates_set.add(datetime.datetime(year=correct_datetime.date.year,
+                                                month=correct_datetime.date.month,
+                                                day=correct_datetime.date.day,
+                                                hour=time.hour,
+                                                minute=time.minute))
+            print(dates_set)
+            for date in dates_set:
+                create_new_appointment(date, client_name, trainer_id)
 
-        for appointment in appointments:
-            appointment.client_name = client_name
-            appointment.trainer_id = trainer_id
 
+def add_regular_client(client_name: str, appointment_date):
+    
