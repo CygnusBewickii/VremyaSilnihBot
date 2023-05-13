@@ -1,10 +1,8 @@
 import datetime
 
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup
-from utils.db_queries import get_trainers, is_user_admin
-#from callbackFactories.regualar_clients import DaysCallbackFactory
+from utils.db_queries import get_trainers, is_user_admin, get_regular_clients
 
 def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     is_admin = is_user_admin(username)
@@ -69,4 +67,13 @@ def get_choose_regular_appointments_kb() -> ReplyKeyboardMarkup:
     kb.button(text="Сб")
     kb.button(text="Вс")
     kb.adjust(7)
+    return kb.as_markup(resize_keyboard=True)
+
+
+def get_regular_clients_kb():
+    kb = ReplyKeyboardBuilder()
+    regular_clients = get_regular_clients()
+    for client in regular_clients:
+        kb.button(text=client.name)
+    kb.adjust(2)
     return kb.as_markup(resize_keyboard=True)

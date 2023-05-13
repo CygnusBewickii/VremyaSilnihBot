@@ -13,8 +13,9 @@ router = Router()
 router.message.middleware(IsAdminMiddleware())
 
 @router.message(Text(text="Тренеры"))
-async def show_trainers_panel(message: Message):
+async def show_trainers_panel(message: Message, state: FSMContext):
     await message.reply("Переход на панель тренеров", reply_markup=get_trainers_panel())
+    await state.clear()
 
 
 @router.message(Text(text="Удалить тренера"))
@@ -23,8 +24,9 @@ async def choose_trainer_to_delete(message: Message, state: FSMContext):
     await state.set_state(DeletingTrainerState.choosing_trainer_name)
 
 @router.message(DeletingTrainerState.choosing_trainer_name, TrainerExistsFilter())
-async def delete_trainer(message: Message):
+async def delete_trainer(message: Message, state: FSMContext):
     await message.reply("Тренер удалён", reply_markup=get_main_management_panel(message.from_user.username))
+    await state.clear()
 
 @router.message(Text(text="Добавить нового тренера"))
 async def choose_trainer_name(message: Message, state: FSMContext):

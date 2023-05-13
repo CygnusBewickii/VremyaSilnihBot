@@ -196,6 +196,12 @@ def get_regular_client_by_id(id: int) -> RegularClient or None:
     with session() as db:
         return db.get(RegularClient, id)
 
+
+def get_regular_clients() -> list[RegularClient]:
+    with session() as db:
+        return db.query(RegularClient).all()
+
+
 def add_new_regular_appointment_to_client(client_name: str, trainer_id: int, week_day_num: int, time: datetime.time):
     with session() as db:
         client = get_regular_client_by_name(client_name)

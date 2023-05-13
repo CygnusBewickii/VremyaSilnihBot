@@ -6,3 +6,7 @@ class RegularClientState(StatesGroup):
     choosing_time = State()
     choosing_client_name = State()
     choosing_trainer_name = State()
+
+
+class DeletingRegularClientState(StatesGroup):
+    choosing_name = State()
