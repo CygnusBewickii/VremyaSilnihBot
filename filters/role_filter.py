@@ -12,5 +12,4 @@ class RoleExistsFilter(BaseFilter):
 class IsUserAdmin(BaseFilter):
     async def __call__(self, message: Message) -> Union[bool, Dict[str, Any]]:
         user = get_trainer_by_username(message.from_user.username)
-        if user.role == "admin":
-            True
+        return user.role == "admin"

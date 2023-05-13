@@ -70,8 +70,9 @@ async def admin_choose_client(message: Message, state: FSMContext):
 
 @router.message(AppointmentState.choosing_appointment_time, TimeFilter())
 async def trainer_choose_client(message: Message, state: FSMContext):
-    await state.update_data(hour=int(message.text[:2]))
-    await state.update_data(minutes=int(message.text[3:]))
+    splitted_time = split_time(message.text)
+    await state.update_data(hour=int(splitted_time[0]))
+    await state.update_data(minutes=int(splitted_time[1]))
     user_data = await state.get_data()
     appointment_date = datetime.datetime(user_data["year"], user_data["month"], user_data["day"], user_data["hour"], user_data["minutes"])
     if not is_appointment_empty(appointment_date):

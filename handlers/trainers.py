@@ -4,7 +4,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from states.trainer import TrainerState, DeletingTrainerState
 from keyboards.management import get_roles_kb, get_main_management_panel, get_trainers_panel, get_trainers_kb
-from utils.db_queries import create_trainer
+from utils.db_queries import create_trainer, delete_trainer as delete_trainer_db
 from filters.role_filter import RoleExistsFilter
 from filters.user_filter import TrainerExistsFilter
 from middlewares.authorization import IsAdminMiddleware
@@ -23,8 +23,10 @@ async def choose_trainer_to_delete(message: Message, state: FSMContext):
     await message.reply("Выберите тренера, которого хотите удалить", reply_markup=get_trainers_kb())
     await state.set_state(DeletingTrainerState.choosing_trainer_name)
 
+
 @router.message(DeletingTrainerState.choosing_trainer_name, TrainerExistsFilter())
 async def delete_trainer(message: Message, state: FSMContext):
+    delete_trainer_db(message.text)
     await message.reply("Тренер удалён", reply_markup=get_main_management_panel(message.from_user.username))
     await state.clear()
 

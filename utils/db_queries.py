@@ -137,8 +137,16 @@ def create_trainer(name: str, username: str, role: str):
 def delete_trainer(name: str):
     with session() as db:
         trainer = get_trainer_by_name(name)
+        delete_regular_appointments_for_trainer(trainer.id)
+        set_empty_appointments_for_trainer(trainer.id)
         db.delete(trainer)
         db.commit()
+
+def set_empty_appointments_for_trainer(trainer_id: int):
+    with session() as db:
+        appointments = db.query(Appointment).where(Appointment.trainer_id == trainer_id).all()
+        for appointment in appointments:
+            set_empty_appointment(appointment.date)
 
 def is_user_admin(username: str) -> bool:
     trainer = get_trainer_by_username(username)
@@ -216,3 +224,11 @@ def add_new_regular_appointment_to_client(client_name: str, trainer_id: int, wee
         )
         db.add(new_regular_appointment)
         db.commit()
+
+
+def delete_regular_appointments_for_trainer(trainer_id: int):
+    with session() as db:
+        regular_appointments = db.query(RegularAppointment).where(RegularAppointment.trainer_id == trainer_id).all()
+        for appointment in regular_appointments:
+            db.delete(appointment)
+            db.commit()
