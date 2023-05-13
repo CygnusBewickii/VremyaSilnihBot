@@ -2,12 +2,13 @@ import datetime
 
 from aiogram import Router
 from aiogram.filters.text import Text
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, get_main_management_panel
 from middlewares.authorization import IsAdminMiddleware
 from states.client import RegularClientState
 from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client
+from utils.time import split_time
 from filters.date_filter import WeekDayFilter, TimeFilter
 from filters.user_filter import TrainerExistsFilter
 
@@ -47,14 +48,15 @@ async def choose_time(message: Message, state: FSMContext):
     }
     day_number = days[message.text]
     await state.update_data(day_number=day_number)
-    await message.reply("Напишите время, на которое надо записать")
+    await message.reply("Напишите время, на которое надо записать", reply_markup=ReplyKeyboardRemove())
     await state.set_state(RegularClientState.choosing_time)
 
 
 @router.message(RegularClientState.choosing_time, TimeFilter())
 async def choosing_trainer(message: Message, state: FSMContext):
-    await state.update_data(hour=int(message.text[:2]))
-    await state.update_data(minutes=int(message.text[3:]))
+    splitted_time = split_time(message.text)
+    await state.update_data(hour=int(splitted_time[0]))
+    await state.update_data(minutes=int(splitted_time[1]))
     await message.reply("Какой тренер будет вести тренировку?", reply_markup=get_trainers_kb())
     await state.set_state(RegularClientState.choosing_trainer_name)
 
@@ -69,5 +71,5 @@ async def create_regular_appointments(message: Message, state: FSMContext):
     client_name = user_data["client_name"]
     add_new_regular_appointment_to_client(client_name, trainer_id, day_number, time)
     fill_days_with_regular_client(day_number, trainer_id, time, client_name)
-    await message.reply("Новая постоянная запись добавлена", reply_markup=get_main_management_panel(message.from_user.username))
+    await message.reply("Новая постоянная запись добавлена", reply_markup=get_regular_clients_panel())
 

@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters.text import Text
 from states.appointment import AppointmentState
 from utils.db_queries import *
+from utils.time import split_time
 from keyboards.management import get_main_management_panel, get_trainers_kb, get_select_month_kb, get_cancel_training_kb
 from filters.user_filter import TrainerExistsFilter
 from filters.role_filter import IsUserAdmin
@@ -51,8 +52,9 @@ async def show_wrong_month_message(message: Message):
 
 @router.message(AppointmentState.choosing_appointment_time, TimeFilter(), IsUserAdmin())
 async def admin_choose_client(message: Message, state: FSMContext):
-    await state.update_data(hour=int(message.text[:2]))
-    await state.update_data(minutes=int(message.text[3:]))
+    splitted_time = split_time(message.text)
+    await state.update_data(hour=int(splitted_time[0]))
+    await state.update_data(minutes=int(splitted_time[1]))
     user_data = await state.get_data()
     appointment_date = datetime.datetime(user_data["year"], user_data["month"], user_data["day"], user_data["hour"], user_data["minutes"])
     if not is_appointment_empty(appointment_date):

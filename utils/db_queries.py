@@ -133,6 +133,13 @@ def create_trainer(name: str, username: str, role: str):
         db.add(new_trainer)
         db.commit()
 
+
+def delete_trainer(name: str):
+    with session() as db:
+        trainer = get_trainer_by_name(name)
+        db.delete(trainer)
+        db.commit()
+
 def is_user_admin(username: str) -> bool:
     trainer = get_trainer_by_username(username)
     return trainer.role == "admin"

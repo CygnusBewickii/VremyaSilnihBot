@@ -4,3 +4,6 @@ class TrainerState(StatesGroup):
     choosing_trainer_name = State()
     choosing_trainer_username = State()
     choosing_trainer_role = State()
+
+class DeletingTrainerState(StatesGroup):
+    choosing_trainer_name = State()
