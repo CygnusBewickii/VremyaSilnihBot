@@ -12,7 +12,7 @@ def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     kb.button(text="Изменение записей")
     kb.button(text="Расписание на неделю")
     if is_admin:
-        kb.button(text="Добавить нового тренера")
+        kb.button(text="Тренеры")
         kb.button(text="Система постоянных клиентов")
     kb.adjust(1, 2)
     return kb.as_markup(resize_keyboard=True)

@@ -2,13 +2,12 @@ import datetime
 
 from aiogram import Router
 from aiogram.filters.text import Text
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb
+from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, get_main_management_panel
 from middlewares.authorization import IsAdminMiddleware
 from states.client import RegularClientState
-# from callbackFactories.regualar_clients import DaysCallbackFactory
-from utils.db_queries import fill_days_with_regular_clients
+from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client
 from filters.date_filter import WeekDayFilter, TimeFilter
 from filters.user_filter import TrainerExistsFilter
 
@@ -65,5 +64,10 @@ async def create_regular_appointments(message: Message, state: FSMContext):
     await state.update_data(trainer_name=message.text)
     user_data = await state.get_data()
     time = datetime.time(user_data["hour"], user_data["minutes"])
-    fill_days_with_regular_clients(user_data["day_number"], user_data["trainer_name"], time, user_data["client_name"])
+    day_number = user_data["day_number"]
+    trainer_id = get_trainer_by_name(user_data["trainer_name"]).id
+    client_name = user_data["client_name"]
+    add_new_regular_appointment_to_client(client_name, trainer_id, day_number, time)
+    fill_days_with_regular_client(day_number, trainer_id, time, client_name)
+    await message.reply("Новая постоянная запись добавлена", reply_markup=get_main_management_panel(message.from_user.username))
 
