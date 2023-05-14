@@ -4,10 +4,14 @@ from aiogram import Router
 from aiogram.filters.text import Text
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
-from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, get_main_management_panel, get_regular_clients_kb
+from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, \
+    get_main_management_panel, get_regular_clients_kb, get_regular_client_appointments_kb
 from middlewares.authorization import IsAdminMiddleware
 from states.client import RegularClientState, DeletingRegularClientState
-from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client, delete_regular_client as delete_regular_client_db
+from states.appointment import DeltetingRegularAppointment
+from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client,\
+    delete_regular_client as delete_regular_client_db, get_regular_appointment_by_day_and_time, \
+    delete_regular_appointment as delete_regular_appointment_db
 from utils.time import split_time
 from filters.date_filter import WeekDayFilter, TimeFilter
 from filters.user_filter import TrainerExistsFilter
@@ -15,6 +19,16 @@ from filters.client_filter import RegularClientExistsFilter
 
 router = Router()
 router.message.middleware(IsAdminMiddleware())
+
+days = {
+        "Пн": 1,
+        "Вт": 2,
+        "Ср": 3,
+        "Чт": 4,
+        "Пт": 5,
+        "Сб": 6,
+        "Вс": 0
+    }
 
 
 @router.message(Text(text="Система постоянных клиентов"))
@@ -36,7 +50,7 @@ async def delete_regular_client(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(Text(text="Добавить клиента"))
+@router.message(Text(text="Добавить постоянную запись"))
 async def add_client(message: Message, state: FSMContext):
     await message.reply("Напишите имя клиента")
     await state.set_state(RegularClientState.choosing_client_name)
@@ -51,15 +65,6 @@ async def choose_date(message: Message, state: FSMContext):
 
 @router.message(RegularClientState.choosing_day, WeekDayFilter())
 async def choose_time(message: Message, state: FSMContext):
-    days = {
-        "Пн": 1,
-        "Вт": 2,
-        "Ср": 3,
-        "Чт": 4,
-        "Пт": 5,
-        "Сб": 6,
-        "Вс": 0
-    }
     day_number = days[message.text]
     await state.update_data(day_number=day_number)
     await message.reply("Напишите время, на которое надо записать", reply_markup=ReplyKeyboardRemove())
@@ -91,5 +96,20 @@ async def create_regular_appointments(message: Message, state: FSMContext):
 
 @router.message(Text(text="Удалить постоянную запись"))
 async def choose_regular_appointment_to_delete(message: Message, state: FSMContext):
-    await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", get_regular_clients_kb())
-    await
+    await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", reply_markup=get_regular_clients_kb())
+    await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment_name)
+
+
+@router.message(DeltetingRegularAppointment.choosing_regular_appointment_name, RegularClientExistsFilter())
+async def choose_regular_appointment(message: Message, state: FSMContext):
+    await message.reply("Выберите, какую запись хотите удалить?",
+                        reply_markup=get_regular_client_appointments_kb(message.text))
+    await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment)
+
+@router.message(DeltetingRegularAppointment.choosing_regular_appointment)
+async def delete_regular_appointment(message: Message, state: FSMContext):
+    appointment = get_regular_appointment_by_day_and_time(days[message.text[:2]], message.text[3:])
+    delete_regular_appointment_db(appointment.id)
+    await message.reply("Постоянная запись удалена", reply_markup=get_regular_clients_panel())
+    await state.clear()
+

@@ -226,12 +226,32 @@ def add_new_regular_appointment_to_client(client_name: str, trainer_id: int, wee
         db.commit()
 
 
+def get_regular_appointments_by_client(client_name: str) -> list[RegularAppointment]:
+    with session() as db:
+        client = get_regular_client_by_name(client_name)
+        return db.query(RegularAppointment).where(RegularAppointment.client_id == client.id).all()
+
+
 def delete_regular_appointments_for_trainer(trainer_id: int):
     with session() as db:
         regular_appointments = db.query(RegularAppointment).where(RegularAppointment.trainer_id == trainer_id).all()
         for appointment in regular_appointments:
             db.delete(appointment)
             db.commit()
+
+
+def get_regular_appointment_by_day_and_time(day_num: int, time: datetime.time) -> RegularClient or None:
+    with session() as db:
+        return db.query(RegularAppointment).where(RegularAppointment.week_day_num == day_num)\
+            .where(RegularAppointment.time == time)\
+            .one_or_none()
+
+
+def delete_regular_appointment(id: int):
+    with session() as db:
+        appointment = db.get(RegularAppointment, id)
+        db.delete(appointment)
+        db.commit()
 
 
 def delete_regular_client(name: str):

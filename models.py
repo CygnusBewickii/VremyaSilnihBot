@@ -40,4 +40,5 @@ class RegularAppointment(Base):
     week_day_num = Column(Integer)
     time = Column(Time)
     client_id = Column(Integer, ForeignKey('regular_clients.id'))
+    client = relationship("RegularClient")
     trainer_id = Column(Integer, ForeignKey('users.id'))

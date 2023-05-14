@@ -2,7 +2,7 @@ import datetime
 
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup
-from utils.db_queries import get_trainers, is_user_admin, get_regular_clients
+from utils.db_queries import get_trainers, is_user_admin, get_regular_clients, get_regular_appointments_by_client
 
 def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     is_admin = is_user_admin(username)
@@ -55,7 +55,25 @@ def get_regular_clients_panel() -> ReplyKeyboardMarkup:
     kb.button(text="Добавить постоянную запись")
     kb.button(text="Удалить постоянную запись")
     kb.button(text="Удалить клиента")
+    kb.adjust(1)
     return kb.as_markup(resize_keyboard=True)
+
+
+def get_regular_client_appointments_kb(client_name: str) -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    regular_appointments = get_regular_appointments_by_client(client_name)
+    for appointment in regular_appointments:
+        days = {
+            1: "Пн",
+            2: "Вт",
+            3: "Ср",
+            4: "Чт",
+            5: "Пт",
+            6: "Сб",
+            0: "Вс"
+        }
+        kb.button(text=f'{days[appointment.week_day_num]} {appointment.time}')
+        return kb.as_markup(resize_keyboard=True)
 
 
 def get_choose_regular_appointments_kb() -> ReplyKeyboardMarkup:
