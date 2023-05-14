@@ -4,10 +4,10 @@ from aiogram import Router
 from aiogram.filters.text import Text
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
-from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, get_main_management_panel
+from keyboards.management import get_regular_clients_panel, get_choose_regular_appointments_kb, get_trainers_kb, get_main_management_panel, get_regular_clients_kb
 from middlewares.authorization import IsAdminMiddleware
 from states.client import RegularClientState, DeletingRegularClientState
-from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client
+from utils.db_queries import fill_days_with_regular_client, get_trainer_by_name, add_new_regular_appointment_to_client, delete_regular_client as delete_regular_client_db
 from utils.time import split_time
 from filters.date_filter import WeekDayFilter, TimeFilter
 from filters.user_filter import TrainerExistsFilter
@@ -25,13 +25,15 @@ async def get_clients_panel(message: Message, state: FSMContext):
 
 @router.message(Text(text="Удалить клиента"))
 async def choose_client_to_delete(message: Message, state: FSMContext):
-    await message.reply("Напишите или выберите имя клиента, записи которого хотите удалить", reply_markup=get_regular_clients_panel())
+    await message.reply("Напишите или выберите имя клиента, записи которого хотите удалить", reply_markup=get_regular_clients_kb())
     await state.set_state(DeletingRegularClientState.choosing_name)
 
 
 @router.message(DeletingRegularClientState.choosing_name, RegularClientExistsFilter())
 async def delete_regular_client(message: Message, state: FSMContext):
-    pass
+    delete_regular_client_db(message.text)
+    await message.reply("Клиент и его записи удалены", reply_markup=get_main_management_panel(message.from_user.username))
+    await state.clear()
 
 
 @router.message(Text(text="Добавить клиента"))
@@ -86,3 +88,8 @@ async def create_regular_appointments(message: Message, state: FSMContext):
     await message.reply("Новая постоянная запись добавлена", reply_markup=get_regular_clients_panel())
     await state.clear()
 
+
+@router.message(Text(text="Удалить постоянную запись"))
+async def choose_regular_appointment_to_delete(message: Message, state: FSMContext):
+    await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", get_regular_clients_kb())
+    await

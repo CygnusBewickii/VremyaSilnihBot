@@ -52,7 +52,8 @@ def get_roles_kb() -> ReplyKeyboardMarkup:
 
 def get_regular_clients_panel() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    kb.button(text="Добавить клиента")
+    kb.button(text="Добавить постоянную запись")
+    kb.button(text="Удалить постоянную запись")
     kb.button(text="Удалить клиента")
     return kb.as_markup(resize_keyboard=True)
 

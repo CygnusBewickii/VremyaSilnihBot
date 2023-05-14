@@ -232,3 +232,18 @@ def delete_regular_appointments_for_trainer(trainer_id: int):
         for appointment in regular_appointments:
             db.delete(appointment)
             db.commit()
+
+
+def delete_regular_client(name: str):
+    with session() as db:
+        regular_client = get_regular_client_by_name(name)
+        regular_appointments_of_client = db.query(RegularAppointment).where(RegularAppointment.client_id == regular_client.id).all()
+        for appointment in regular_appointments_of_client:
+            db.delete(appointment)
+            db.commit()
+        appointments_of_client = db.query(Appointment).where(Appointment.client_name == regular_client.name).all()
+        for appointment in appointments_of_client:
+            set_empty_appointment(appointment.date)
+            db.commit()
+        db.delete(regular_client)
+        db.commit()
