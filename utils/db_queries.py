@@ -47,10 +47,12 @@ def create_new_appointment(date: datetime.datetime, client_name: str, trainer_id
     with session() as db:
         new_appointment = db.query(Appointment).where(Appointment.date == date).one_or_none()
         if new_appointment == None:
-            previous_appointment = db.query(Appointment).where(Appointment.date == date - datetime.timedelta(minutes=date.minute)).one()
-            db.delete(previous_appointment)
-            next_appointment = db.query(Appointment).where(Appointment.date == date + datetime.timedelta(minutes=60-date.minute)).one()
-            db.delete(next_appointment)
+            previous_appointment = db.query(Appointment).where(Appointment.date == date - datetime.timedelta(minutes=date.minute)).one_or_none()
+            if previous_appointment != None:
+                db.delete(previous_appointment)
+            next_appointment = db.query(Appointment).where(Appointment.date == date + datetime.timedelta(minutes=60-date.minute)).one_or_none()
+            if next_appointment != None:
+                db.delete(next_appointment)
             new_appointment = Appointment(
                 date=date,
                 trainer_id=trainer_id,

@@ -26,7 +26,7 @@ async def return_to_panel(message: Message, state: FSMContext):
 async def get_week_schedule(message: Message):
     appointments = get_week_appointments()
     reply_message = '<b>Время - Клиент - Тренер</b> \n\n'
-    for day in range(7, 0, -1):
+    for day in range(6, -1, -1):
         today = datetime.datetime.today()
         day_date = datetime.datetime(today.year, today.month, today.day) + datetime.timedelta(days=day)
         reply_message += (day_date.strftime('%A (%d.%m.%Y)')) + '\n' + '\n'
