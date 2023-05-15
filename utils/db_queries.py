@@ -170,7 +170,10 @@ def fill_days_with_regular_client(day_of_the_week: int, trainer_id: int, time: d
                 appointment.trainer_id = trainer_id
                 db.commit()
         else:
-            correct_datetimes = db.query(Appointment).where(func.extract("DOW", Appointment.date) == day_of_the_week).all()
+            correct_datetimes = db.query(Appointment)\
+                .where(func.extract("DOW", Appointment.date) == day_of_the_week)\
+                .filter(Appointment.date > datetime.datetime.now())\
+                .all()
             dates_set = set()
             for correct_datetime in correct_datetimes:
                 dates_set.add(datetime.datetime(year=correct_datetime.date.year,

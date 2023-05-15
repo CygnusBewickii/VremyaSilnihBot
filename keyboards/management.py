@@ -9,10 +9,10 @@ def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
     kb.button(text="Изменение записей")
     kb.button(text="Расписание на неделю")
+    kb.button(text="Система постоянных клиентов")
     if is_admin:
         kb.button(text="Тренеры")
-        kb.button(text="Система постоянных клиентов")
-    kb.adjust(1, 2)
+    kb.adjust(1)
     return kb.as_markup(resize_keyboard=True)
 
 
@@ -85,6 +85,7 @@ def get_choose_regular_appointments_kb() -> ReplyKeyboardMarkup:
     kb.button(text="Пт")
     kb.button(text="Сб")
     kb.button(text="Вс")
+    kb.button(text="Утвердить записи")
     kb.adjust(7)
     return kb.as_markup(resize_keyboard=True)
 

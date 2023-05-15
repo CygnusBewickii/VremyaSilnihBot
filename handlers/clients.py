@@ -18,7 +18,7 @@ from filters.user_filter import TrainerExistsFilter
 from filters.client_filter import RegularClientExistsFilter
 
 router = Router()
-router.message.middleware(IsAdminMiddleware())
+
 
 days = {
         "Пн": 1,
@@ -81,27 +81,52 @@ async def choosing_trainer(message: Message, state: FSMContext):
 
 
 @router.message(RegularClientState.choosing_trainer_name, TrainerExistsFilter())
-async def create_regular_appointments(message: Message, state: FSMContext):
-    await state.update_data(trainer_name=message.text)
+async def add_regular_appointment_to_array(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    time = datetime.time(user_data["hour"], user_data["minutes"])
-    day_number = user_data["day_number"]
-    trainer_id = get_trainer_by_name(user_data["trainer_name"]).id
-    client_name = user_data["client_name"]
-    add_new_regular_appointment_to_client(client_name, trainer_id, day_number, time)
-    fill_days_with_regular_client(day_number, trainer_id, time, client_name)
-    await message.reply("Новая постоянная запись добавлена", reply_markup=get_regular_clients_panel())
+    try:
+        appointments_array = user_data["appointments_array"]
+        appointments_array: list
+        appointments_array.append({
+            'day_number': user_data["day_number"],
+            'time': datetime.time(user_data["hour"], user_data["minutes"]),
+            'trainer_id': get_trainer_by_name(message.text).id,
+            'client_name': user_data["client_name"]
+        })
+        await state.update_data(appointments_array=appointments_array)
+    except:
+        await state.update_data(appointments_array=[{
+            'day_number': user_data["day_number"],
+            'time': datetime.time(user_data["hour"], user_data["minutes"]),
+            'trainer_id': get_trainer_by_name(message.text).id,
+            'client_name': user_data["client_name"]
+        }])
+    await message.reply("Выберите ещё записи для клиента, или нажмите продолжить", reply_markup=get_choose_regular_appointments_kb())
+    await state.set_state(RegularClientState.choosing_day)
+
+
+@router.message(Text(text="Утвердить записи"))
+async def create_regular_appointments(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+    regular_appointments = user_data["appointments_array"]
+    for appointment in regular_appointments:
+        day_number = appointment["day_number"]
+        time = appointment["time"]
+        trainer_id = appointment["trainer_id"]
+        client_name = appointment["client_name"]
+        add_new_regular_appointment_to_client(client_name, trainer_id, day_number, time)
+        fill_days_with_regular_client(day_number, trainer_id, time, client_name)
+    await message.reply("Новые постоянные записи добавлены", reply_markup=get_regular_clients_panel())
     await state.clear()
 
 
 @router.message(Text(text="Удалить постоянную запись"))
-async def choose_regular_appointment_to_delete(message: Message, state: FSMContext):
+async def choose_regular_client_appointment_to_delete(message: Message, state: FSMContext):
     await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", reply_markup=get_regular_clients_kb())
     await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment_name)
 
 
 @router.message(DeltetingRegularAppointment.choosing_regular_appointment_name, RegularClientExistsFilter())
-async def choose_regular_appointment(message: Message, state: FSMContext):
+async def choose_regular_appointment_to_delete(message: Message, state: FSMContext):
     await message.reply("Выберите, какую запись хотите удалить?",
                         reply_markup=get_regular_client_appointments_kb(message.text))
     await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment)
