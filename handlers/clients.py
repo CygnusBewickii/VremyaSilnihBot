@@ -39,7 +39,7 @@ async def get_clients_panel(message: Message, state: FSMContext):
 
 @router.message(Text(text="Удалить клиента"))
 async def choose_client_to_delete(message: Message, state: FSMContext):
-    await message.reply("Напишите или выберите имя клиента, записи которого хотите удалить", reply_markup=get_regular_clients_kb())
+    await message.reply("Напишите или выберите имя клиента, записи которого хотите удалить", reply_markup=get_regular_clients_kb(message.from_user.username))
     await state.set_state(DeletingRegularClientState.choosing_name)
 
 
@@ -52,7 +52,7 @@ async def delete_regular_client(message: Message, state: FSMContext):
 
 @router.message(Text(text="Добавить постоянную запись"))
 async def add_client(message: Message, state: FSMContext):
-    await message.reply("Напишите имя клиента")
+    await message.reply("Напишите имя клиента", reply_markup=ReplyKeyboardRemove)
     await state.set_state(RegularClientState.choosing_client_name)
 
 
@@ -121,14 +121,14 @@ async def create_regular_appointments(message: Message, state: FSMContext):
 
 @router.message(Text(text="Удалить постоянную запись"))
 async def choose_regular_client_appointment_to_delete(message: Message, state: FSMContext):
-    await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", reply_markup=get_regular_clients_kb())
+    await message.reply("Введите или выберите имя клиента, запись которого хотите удалить", reply_markup=get_regular_clients_kb(message.from_user.username))
     await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment_name)
 
 
 @router.message(DeltetingRegularAppointment.choosing_regular_appointment_name, RegularClientExistsFilter())
 async def choose_regular_appointment_to_delete(message: Message, state: FSMContext):
     await message.reply("Выберите, какую запись хотите удалить?",
-                        reply_markup=get_regular_client_appointments_kb(message.text))
+                        reply_markup=get_regular_client_appointments_kb(message.from_user.username, message.text))
     await state.set_state(DeltetingRegularAppointment.choosing_regular_appointment)
 
 @router.message(DeltetingRegularAppointment.choosing_regular_appointment)

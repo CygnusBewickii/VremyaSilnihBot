@@ -1,5 +1,3 @@
-import datetime
-
 from aiogram import Router
 from aiogram.types import Message, ReplyKeyboardRemove
 from filters.date_filter import DateFilter, TimeFilter

@@ -98,19 +98,26 @@ def create_empty_appointments(year: int, month: int):
 def set_empty_appointment(date: datetime.datetime):
     with session() as db:
         appointment = db.query(Appointment).filter(Appointment.date == date).one()
+        print(appointment.date)
         appointment.client_name = None
         appointment.trainer_id = None
-        if date.minute != 0:
-            db.add(Appointment(
-                date=date+datetime.timedelta(minutes=60-date.minute),
-                trainer_id=None,
-                client_name=None
-            ))
-            db.add(Appointment(
-                date=date-datetime.timedelta(minutes=date.minute),
-                trainer_id=None,
-                client_name=None
-            ))
+        if date.minute != 0 and appointment is not None:
+            previous_datetime = date=date-datetime.timedelta(minutes=date.minute)
+            next_datetime = date+datetime.timedelta(minutes=60-date.minute)
+            previous_appointment = db.query(Appointment).where(Appointment.date == previous_datetime).one_or_none()
+            next_appointment = db.query(Appointment).where(Appointment.date == next_datetime).one_or_none()
+            if next_appointment is None:
+                db.add(Appointment(
+                    date=next_datetime,
+                    trainer_id=None,
+                    client_name=None
+                ))
+            if previous_appointment is None:
+                db.add(Appointment(
+                    date=previous_datetime,
+                    trainer_id=None,
+                    client_name=None
+                ))
             db.delete(appointment)
         db.commit()
 
@@ -147,8 +154,9 @@ def delete_trainer(name: str):
 def set_empty_appointments_for_trainer(trainer_id: int):
     with session() as db:
         appointments = db.query(Appointment).where(Appointment.trainer_id == trainer_id).all()
-        for appointment in appointments:
-            set_empty_appointment(appointment.date)
+        if len(appointments) != 0:
+            for appointment in appointments:
+                set_empty_appointment(appointment.date)
 
 def is_user_admin(username: str) -> bool:
     trainer = get_trainer_by_username(username)
@@ -215,6 +223,31 @@ def get_regular_clients() -> list[RegularClient]:
         return db.query(RegularClient).all()
 
 
+def get_regular_clients_for_trainer(trainer_name: str) -> list[RegularClient] or None:
+    with session() as db:
+        trainer_id = get_trainer_by_username(trainer_name).id
+        appointments = get_regular_appointments_for_trainer(trainer_id)
+        if len(appointments) == 0:
+            return None
+        else:
+            clients = list()
+            for appointment in appointments:
+                clients.append(get_regular_client_by_id(appointment.client_id))
+            return clients
+
+
+def get_regular_appointments_for_trainer(trainer_id: int) -> list[RegularAppointment]:
+    with session() as db:
+        return db.query(RegularAppointment).where(RegularAppointment.trainer_id == trainer_id).all()
+
+def get_regular_clients_appointment_for_trainer(trainer_username: str, client_name: str):
+    with session() as db:
+        trainer_id = get_trainer_by_username(trainer_username).id
+        client_id = get_regular_client_by_name(client_name).id
+        return db.query(RegularAppointment).where(RegularAppointment.trainer_id == trainer_id)\
+            .where(RegularAppointment.client_id == client_id)\
+            .all()
+
 def add_new_regular_appointment_to_client(client_name: str, trainer_id: int, week_day_num: int, time: datetime.time):
     with session() as db:
         client = get_regular_client_by_name(client_name)
@@ -263,12 +296,13 @@ def delete_regular_client(name: str):
     with session() as db:
         regular_client = get_regular_client_by_name(name)
         regular_appointments_of_client = db.query(RegularAppointment).where(RegularAppointment.client_id == regular_client.id).all()
-        for appointment in regular_appointments_of_client:
-            db.delete(appointment)
-            db.commit()
-        appointments_of_client = db.query(Appointment).where(Appointment.client_name == regular_client.name).all()
-        for appointment in appointments_of_client:
-            set_empty_appointment(appointment.date)
-            db.commit()
+        if len(regular_appointments_of_client) != 0:
+            for appointment in regular_appointments_of_client:
+                db.delete(appointment)
+                db.commit()
+            appointments_of_client = db.query(Appointment).where(Appointment.client_name == regular_client.name).all()
+            for appointment in appointments_of_client:
+                set_empty_appointment(appointment.date)
+                db.commit()
         db.delete(regular_client)
         db.commit()

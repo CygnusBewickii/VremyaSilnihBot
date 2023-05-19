@@ -2,13 +2,14 @@ import datetime
 
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup
-from utils.db_queries import get_trainers, is_user_admin, get_regular_clients, get_regular_appointments_by_client
+from utils.db_queries import get_trainers, is_user_admin, get_regular_clients, get_regular_appointments_by_client, \
+    get_regular_clients_for_trainer, get_regular_clients_appointment_for_trainer
 
 def get_main_management_panel(username: str) -> ReplyKeyboardMarkup:
     is_admin = is_user_admin(username)
     kb = ReplyKeyboardBuilder()
-    kb.button(text="Изменение записей")
     kb.button(text="Расписание на неделю")
+    kb.button(text="Изменение записей")
     kb.button(text="Система постоянных клиентов")
     if is_admin:
         kb.button(text="Тренеры")
@@ -59,9 +60,10 @@ def get_regular_clients_panel() -> ReplyKeyboardMarkup:
     return kb.as_markup(resize_keyboard=True)
 
 
-def get_regular_client_appointments_kb(client_name: str) -> ReplyKeyboardMarkup:
+def get_regular_client_appointments_kb(trainer_username: str, client_name: str) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    regular_appointments = get_regular_appointments_by_client(client_name)
+    regular_appointments = get_regular_appointments_by_client(client_name) if is_user_admin(trainer_username) \
+        else get_regular_clients_appointment_for_trainer(trainer_username, client_name)
     for appointment in regular_appointments:
         days = {
             1: "Пн",
@@ -90,10 +92,18 @@ def get_choose_regular_appointments_kb() -> ReplyKeyboardMarkup:
     return kb.as_markup(resize_keyboard=True)
 
 
-def get_regular_clients_kb():
+def get_regular_clients_kb(trainer_username: str):
     kb = ReplyKeyboardBuilder()
-    regular_clients = get_regular_clients()
-    for client in regular_clients:
-        kb.button(text=client.name)
+    if is_user_admin(trainer_username):
+        regular_clients = get_regular_clients()
+        for client in regular_clients:
+            kb.button(text=client.name)
+    else:
+        regular_clients = get_regular_clients_for_trainer(trainer_username)
+        client_names = set()
+        for client in regular_clients:
+            client_names.add(client.name)
+        for client_name in client_names:
+            kb.button(text=client_name)
     kb.adjust(2)
     return kb.as_markup(resize_keyboard=True)
