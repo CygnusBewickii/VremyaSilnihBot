@@ -75,7 +75,7 @@ def get_regular_client_appointments_kb(trainer_username: str, client_name: str) 
             0: "Вс"
         }
         kb.button(text=f'{days[appointment.week_day_num]} {appointment.time}')
-        return kb.as_markup(resize_keyboard=True)
+    return kb.as_markup(resize_keyboard=True)
 
 
 def get_choose_regular_appointments_kb() -> ReplyKeyboardMarkup:

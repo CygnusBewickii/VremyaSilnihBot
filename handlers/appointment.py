@@ -91,7 +91,7 @@ async def trainer_choose_client(message: Message, state: FSMContext):
 
 @router.message(AppointmentState.choosing_appointment_time)
 async def show_wrong_client_message(message: Message):
-    await message.reply("Данные введены неправильно. Воспользуйтесь кнопками")
+    await message.reply("Данные введены неправильно. Введите время в формате **:** или **.**, где * - это число")
 
 
 @router.message(AppointmentState.choosing_client_name, Text(text="Убрать клиента"))
